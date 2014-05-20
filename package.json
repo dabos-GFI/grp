@@ -1,0 +1,24 @@
+{
+  "name": "grp",
+  "version": "1.0.0",
+  "description": "grp.h binding for Node.js",
+  "main": "build/Release/grp.node",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "install": "node-gyp rebuild"
+  },
+  "author": "Damien Abos",
+  "license": "MIT",
+  "gypfile": true,
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/dabos-GFI/grp.git"
+  },
+  "keywords": [
+    "grp"
+  ],
+  "bugs": {
+    "url": "https://github.com/dabos-GFI/grp/issues"
+  },
+  "homepage": "https://github.com/dabos-GFI/grp"
+}
