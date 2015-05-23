@@ -1,76 +1,71 @@
+// grp.cc
 #include <node.h>
-#include <v8.h>
 #include <sys/types.h>
 #include <grp.h>
 
+namespace grp {
+
 using namespace v8;
-
-
-Local<Object> mkgroup(const struct group *grp) {
-  Local<Object> obj = Object::New();
-  obj->Set(String::NewSymbol("gr_name"), String::New(grp->gr_name));
-  // obj->Set(String::NewSymbol("gr_passwd"), String::New(grp->gr_passwd));
-  obj->Set(String::NewSymbol("gr_gid"), Number::New(grp->gr_gid));
+  
+Local<Object> mkgroup(Isolate* isolate, const struct group* grp) {
+  Local<Object> obj = Object::New(isolate);
+  obj->Set(String::NewFromUtf8(isolate, "gr_name"), String::NewFromUtf8(isolate, grp->gr_name));
+  //obj->Set(String::NewFromUtf8(isolate, "gr_passwd"), String::NewFromUtf8(isolate, grp->gr_passwd));
+  obj->Set(String::NewFromUtf8(isolate, "gr_gid"), Number::New(isolate, grp->gr_gid));
   // TODO return member
   // grp->gr_mem
   return obj;
 }
 
-Handle<Value> Getgrgid(const Arguments& args) {
-  HandleScope scope;
-
-  if (args.Length() < 0) {
-    ThrowException(Exception::TypeError(String::New("Wrong number of arguments")));
-    return scope.Close(Undefined());
+void Getgrgid(const FunctionCallbackInfo<Value>& args) {
+  Isolate* isolate = args.GetIsolate();
+  
+  if (args.Length() < 1) {
+    isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "Wrong number of arguments")));
+    return;
   }
 
   if (!args[0]->IsNumber()) {
-    ThrowException(Exception::TypeError(String::New("Argument must be a number")));
-    return scope.Close(Undefined());
+    isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "Argument must be a number")));
+    return;
   }
 
   gid_t gid = args[0]->NumberValue();
 
   struct group *grp = getgrgid(gid);
 
-  if (grp == NULL) {
-    return scope.Close(Undefined());
-  } else {
-    return scope.Close(mkgroup(grp));
+  if (grp != NULL) {
+    args.GetReturnValue().Set(mkgroup(isolate, grp));
   }
 }
-
-
-Handle<Value> Getgrnam(const Arguments& args) {
-  HandleScope scope;
-
-  if (args.Length() < 0) {
-    ThrowException(Exception::TypeError(String::New("Wrong number of arguments")));
-    return scope.Close(Undefined());
+  
+void Getgrnam(const FunctionCallbackInfo<Value>& args) {
+  Isolate* isolate = args.GetIsolate();
+  
+  if (args.Length() < 1) {
+    isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "Wrong number of arguments")));
+    return;
   }
 
   if (!args[0]->IsString()) {
-    ThrowException(Exception::TypeError(String::New("Argument must be a string")));
-    return scope.Close(Undefined());
+    isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "Argument must be a string")));
+    return;
   }
 
   String::Utf8Value name(args[0]);
 
   struct group *grp = getgrnam(*name);
 
-  if (grp == NULL) {
-    return scope.Close(Undefined());
-  } else {
-    return scope.Close(mkgroup(grp));
+  if (grp != NULL) {
+    args.GetReturnValue().Set(mkgroup(isolate, grp));
   }
 }
 
-void init(Handle<Object> exports) {
-  exports->Set(String::NewSymbol("getgrgid"),
-    FunctionTemplate::New(Getgrgid)->GetFunction());
-  exports->Set(String::NewSymbol("getgrnam"),
-    FunctionTemplate::New(Getgrnam)->GetFunction());
+void Init(Local<Object> exports, Local<Object> module) {
+  NODE_SET_METHOD(exports, "getgrgid", Getgrgid);
+  NODE_SET_METHOD(exports, "getgrnam", Getgrnam);
 }
 
-NODE_MODULE(grp, init)
+NODE_MODULE(addon, Init)
 
+}  // namespace grp
