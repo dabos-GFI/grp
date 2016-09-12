@@ -28,7 +28,7 @@ There is two available functions:
 ```
 + getgrnam(name)
 ```js
-    var group = grp.getgrname('wheel');
+    var group = grp.getgrnam('wheel');
 ```
 
 These functions obtain information from opendirectoryd(8), including records in /etc/group which is described in group(5).
